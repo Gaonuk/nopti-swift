@@ -3,12 +3,13 @@ class ConversationViewModel: ObservableObject {
     @Published var content: [Content] = []
     @Published var isLoading = false
     @Published var error: String?
-    @Published var workflowResult: String?
+    @Published var suggestion: String?
     
     func loadContent() async {
         isLoading = true
         do {
             content = try await NetworkManager.shared.fetchContent()
+            suggest()
             error = nil
         } catch {
             self.error = error.localizedDescription
@@ -20,7 +21,8 @@ class ConversationViewModel: ObservableObject {
         isLoading = true
         do {
             let response = try await NetworkManager.shared.executeWorkflow(input: input)
-            workflowResult = response.result
+            suggest()
+            // workflowResult = response.result
             error = nil
         } catch {
             self.error = error.localizedDescription
@@ -38,5 +40,14 @@ class ConversationViewModel: ObservableObject {
             self.error = error.localizedDescription
         }
         isLoading = false
+    }
+    
+    func suggest() {
+        guard !content.isEmpty else {
+            suggestion = nil
+            return
+        }
+        
+        suggestion = content[0].title
     }
 } 
